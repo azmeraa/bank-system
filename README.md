@@ -1,40 +1,43 @@
 # 🏦 Banking System API (Flask + JWT + Role-Based Access)
 
-A backend banking system built with Flask, JWT authentication, and role-based access control (admin/user).
+A secure backend banking system built with **Flask**, featuring JWT authentication, role-based access control (Admin/User), and modular API architecture.
+
+---
 
 ## 🚀 Features
 
-- User registration & login
-- JWT authentication
-- Role-based access (Admin/User)
-- Secure API structure
-- Banking operations API
-- Clean modular backend design
+- 👤 User registration & login
+- 🔐 JWT authentication system
+- 🛡️ Role-based access control (Admin / User)
+- 💳 Banking operations API (deposit, withdraw, balance, transfer)
+- 🔒 Secure endpoints with authorization middleware
+- 🧱 Clean modular backend structure
+- 📊 Scalable REST API design
+
+---
 
 ## 🛠 Tech Stack
 
-- Python
-- Flask
-- Flask-JWT-Extended
-- SQLite / Database
-- REST API
+- Python 🐍
+- Flask 🌶️
+- Flask-JWT-Extended 🔐
+- SQLite (or database used)
+- RESTful API design
 
-## 📂 Project Structure
+---
+
+## 📁 Project Structure
+
 
 backend/
-│── app/
-│   ├── routes/
-│   ├── models/
-│   ├── utils/
-│   ├── services/
-│── main.py
-│── requirements.txt
-
-## ▶️ Run Project
-
-```bash
-pip install -r requirements.txt
-python main.py
-👨‍💻 Author
-
-Azmera Abebe Teshale
+│
+├── app/
+│ ├── routes/ # API endpoints
+│ ├── models/ # Database models
+│ ├── utils/ # Helper functions
+│ ├── services/ # Business logic
+│
+├── main.py # Application entry point
+├── requirements.txt # Dependencies
+├── .gitignore
+└── README.md
