@@ -1,6 +1,11 @@
 import sqlite3
+import os
+
+
+DB_PATH = os.path.join(os.path.dirname(__file__), "bank.db")
+
 
 def get_connection():
-    conn = sqlite3.connect("bank.db")
-    conn.row_factory = sqlite3.Row   # ✅ IMPORTANT FIX
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
     return conn

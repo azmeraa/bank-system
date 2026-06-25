@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify
-from utils.jwt_required import jwt_required
-from services.bank_service import BankService
+
+# ✅ FIXED IMPORTS FOR RENDER
+from app.utils.jwt_required import jwt_required
+from app.services.bank_service import BankService
 
 banking = Blueprint("banking", __name__)
-
 
 # =========================
 # 💰 DEPOSIT MONEY
@@ -88,7 +89,7 @@ def transactions():
 
 
 # =========================
-# 💸 TRANSFER MONEY (NEW)
+# 💸 TRANSFER MONEY
 # =========================
 @banking.route("/transfer", methods=["POST"])
 @jwt_required

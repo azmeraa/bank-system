@@ -6,7 +6,7 @@ def create_tables():
     cursor = conn.cursor()
 
     # =========================
-    # 👤 USERS TABLE (UPDATED)
+    # 👤 USERS TABLE
     # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
@@ -30,7 +30,6 @@ def create_tables():
         amount REAL NOT NULL,
         balance_after REAL NOT NULL,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-
         FOREIGN KEY (user_id) REFERENCES users(id)
     )
     """)

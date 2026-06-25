@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
-from database import get_connection
-from utils.jwt_required import jwt_required
-from utils.admin_required import admin_required
+from app.database import get_connection
+from app.utils.jwt_required import jwt_required
+from app.utils.admin_required import admin_required
 
 admin = Blueprint("admin", __name__)
 

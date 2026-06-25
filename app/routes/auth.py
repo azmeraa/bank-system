@@ -1,14 +1,18 @@
 from flask import Blueprint, request, jsonify
-from database import get_connection
+from app.database import get_connection
+
 from werkzeug.security import generate_password_hash, check_password_hash
 from services.bank_service import BankService
+
 import jwt
 import datetime
+import os
 from functools import wraps
 
 auth = Blueprint('auth', __name__)
 
-SECRET_KEY = "bank-secret-key-123"
+# ✅ USE ENV SECRET (Render safe)
+SECRET_KEY = os.getenv("SECRET_KEY", "bank-secret-key-123")
 
 # =========================
 # REGISTER
@@ -21,7 +25,7 @@ def register():
     email = data.get("email")
     password = data.get("password")
 
-    if not full_name or not email or not password:
+    if not all([full_name, email, password]):
         return jsonify({"error": "All fields are required"}), 400
 
     hashed_password = generate_password_hash(password)
@@ -44,9 +48,8 @@ def register():
     finally:
         conn.close()
 
-
 # =========================
-# LOGIN (TOKEN)
+# LOGIN
 # =========================
 @auth.route('/login', methods=['POST'])
 def login():
@@ -60,7 +63,6 @@ def login():
 
     cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
     user = cursor.fetchone()
-
     conn.close()
 
     if not user:
@@ -77,9 +79,8 @@ def login():
 
     return jsonify({"message": "Login successful", "token": token}), 200
 
-
 # =========================
-# TOKEN CHECKER
+# TOKEN DECORATOR
 # =========================
 def token_required(func):
     @wraps(func)
@@ -99,7 +100,6 @@ def token_required(func):
 
     return wrapper
 
-
 # =========================
 # BALANCE
 # =========================
@@ -111,25 +111,17 @@ def balance():
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT balance FROM users WHERE id = ?",
-        (user_id,)
-    )
-
+    cursor.execute("SELECT balance FROM users WHERE id = ?", (user_id,))
     user = cursor.fetchone()
     conn.close()
 
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    return jsonify({
-        "user_id": user_id,
-        "balance": user["balance"]
-    }), 200
-
+    return jsonify({"balance": user["balance"]}), 200
 
 # =========================
-# PROFILE (NEW)
+# PROFILE
 # =========================
 @auth.route('/profile', methods=['GET'])
 @token_required
@@ -151,13 +143,7 @@ def profile():
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    return jsonify({
-        "id": user["id"],
-        "full_name": user["full_name"],
-        "email": user["email"],
-        "balance": user["balance"]
-    }), 200
-
+    return jsonify(dict(user)), 200
 
 # =========================
 # DEPOSIT
@@ -166,17 +152,21 @@ def profile():
 @token_required
 def deposit():
     data = request.json
-    amount = data.get("amount")
 
-    user_id = request.user["user_id"]
+    try:
+        amount = float(data.get("amount", 0))
+    except:
+        return jsonify({"error": "Invalid amount"}), 400
 
-    new_balance = BankService.deposit(user_id, amount)
+    if amount <= 0:
+        return jsonify({"error": "Amount must be > 0"}), 400
+
+    new_balance = BankService.deposit(request.user["user_id"], amount)
 
     return jsonify({
         "message": "Deposit successful",
         "new_balance": new_balance
     })
-
 
 # =========================
 # WITHDRAW
@@ -185,20 +175,21 @@ def deposit():
 @token_required
 def withdraw():
     data = request.json
-    amount = data.get("amount")
 
-    user_id = request.user["user_id"]
+    try:
+        amount = float(data.get("amount", 0))
+    except:
+        return jsonify({"error": "Invalid amount"}), 400
 
-    new_balance = BankService.withdraw(user_id, amount)
+    result = BankService.withdraw(request.user["user_id"], amount)
 
-    if new_balance is None:
-        return jsonify({"error": "Insufficient balance"}), 400
+    if result == "INSUFFICIENT_FUNDS":
+        return jsonify({"error": "Insufficient funds"}), 400
 
     return jsonify({
         "message": "Withdraw successful",
-        "new_balance": new_balance
+        "new_balance": result
     })
-
 
 # =========================
 # TRANSACTIONS
@@ -206,33 +197,11 @@ def withdraw():
 @auth.route('/transactions', methods=['GET'])
 @token_required
 def transactions():
-    user_id = request.user["user_id"]
+    rows = BankService.get_transactions(request.user["user_id"])
 
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT *
-        FROM transactions
-        WHERE user_id = ?
-        ORDER BY timestamp DESC
-    """, (user_id,))
-
-    rows = cursor.fetchall()
-    conn.close()
-
-    return jsonify({
-        "transactions": [
-            {
-                "transaction_type": r["transaction_type"],
-                "amount": r["amount"],
-                "balance_after": r["balance_after"],
-                "timestamp": r["timestamp"]
-            }
-            for r in rows
-        ]
-    })
-
+    return jsonify([
+        dict(r) for r in rows
+    ])
 
 # =========================
 # TRANSFER
@@ -243,10 +212,14 @@ def transfer():
     data = request.json
 
     receiver_email = data.get("receiver_email")
-    amount = data.get("amount")
 
-    if not receiver_email or amount is None:
-        return jsonify({"error": "receiver_email and amount are required"}), 400
+    try:
+        amount = float(data.get("amount", 0))
+    except:
+        return jsonify({"error": "Invalid amount"}), 400
+
+    if not receiver_email:
+        return jsonify({"error": "receiver_email required"}), 400
 
     sender_id = request.user["user_id"]
 
@@ -260,47 +233,16 @@ def transfer():
     receiver = cursor.fetchone()
 
     if not receiver:
-        conn.close()
         return jsonify({"error": "Receiver not found"}), 404
 
     if sender["balance"] < amount:
-        conn.close()
         return jsonify({"error": "Insufficient balance"}), 400
 
     sender_new = sender["balance"] - amount
     receiver_new = receiver["balance"] + amount
 
-    cursor.execute(
-        "UPDATE users SET balance = ? WHERE id = ?",
-        (sender_new, sender_id)
-    )
-
-    cursor.execute(
-        "UPDATE users SET balance = ? WHERE id = ?",
-        (receiver_new, receiver["id"])
-    )
-
-    cursor.execute("""
-        INSERT INTO transactions
-        (user_id, transaction_type, amount, balance_after)
-        VALUES (?, ?, ?, ?)
-    """, (
-        sender_id,
-        "transfer_sent",
-        amount,
-        sender_new
-    ))
-
-    cursor.execute("""
-        INSERT INTO transactions
-        (user_id, transaction_type, amount, balance_after)
-        VALUES (?, ?, ?, ?)
-    """, (
-        receiver["id"],
-        "transfer_received",
-        amount,
-        receiver_new
-    ))
+    cursor.execute("UPDATE users SET balance=? WHERE id=?", (sender_new, sender_id))
+    cursor.execute("UPDATE users SET balance=? WHERE id=?", (receiver_new, receiver["id"]))
 
     conn.commit()
     conn.close()
@@ -308,4 +250,4 @@ def transfer():
     return jsonify({
         "message": "Transfer successful",
         "sender_balance": sender_new
-    }), 200
+    })
