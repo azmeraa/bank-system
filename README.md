@@ -28,8 +28,7 @@ A secure backend banking system built with **Flask**, featuring JWT authenticati
 
 ## 📁 Project Structure
 
-
-backend/
+bank-system/
 │
 ├── app/
 │ ├── routes/ # API endpoints
@@ -41,3 +40,24 @@ backend/
 ├── requirements.txt # Dependencies
 ├── .gitignore
 └── README.md
+---
+
+## ▶️ How to Run
+
+```bash
+git clone https://github.com/azmeraa/bank-system.git
+cd bank-system
+pip install -r requirements.txt
+python main.py
+
+## 📌 API Endpoints
+
+### 🔐 Auth
+- `POST /register` → Create new user  
+- `POST /login` → Login and get JWT token  
+
+### 💳 Banking
+- `GET /balance` → View account balance  
+- `POST /deposit` → Add money  
+- `POST /withdraw` → Withdraw money  
+- `POST /transfer` → Transfer money  
