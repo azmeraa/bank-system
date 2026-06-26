@@ -6,6 +6,7 @@ from app.services.bank_service import BankService
 
 banking = Blueprint("banking", __name__)
 
+
 # =========================
 # 💰 DEPOSIT MONEY
 # =========================

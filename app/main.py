@@ -1,7 +1,9 @@
 from flask import Flask, jsonify
 import os
 
-# ✅ FIXED IMPORT PATHS (IMPORTANT FOR RENDER)
+# =========================
+# App Imports
+# =========================
 from app.models import create_tables
 from app.routes.auth import auth
 from app.routes.banking import banking
@@ -18,9 +20,12 @@ app = Flask(__name__)
 load_dotenv()
 
 # =========================
-# SECRET KEY (JWT)
+# Secret Key
 # =========================
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "bank-secret-key-123")
+app.config["SECRET_KEY"] = os.getenv(
+    "SECRET_KEY",
+    "bank-secret-key-123"
+)
 
 # =========================
 # Database setup
@@ -31,7 +36,7 @@ with app.app_context():
     print("Database ready!")
 
 # =========================
-# Register blueprints
+# Register Blueprints
 # =========================
 app.register_blueprint(auth)
 app.register_blueprint(banking)
@@ -46,7 +51,9 @@ API_URL = "/swagger.json"
 swaggerui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
-    config={"app_name": "Bank System API"}
+    config={
+        "app_name": "Bank System API"
+    }
 )
 
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
@@ -64,15 +71,57 @@ def swagger_json():
             "description": "Secure Banking Backend API using Flask + JWT + Admin System"
         },
         "paths": {
-            "/": {"get": {"summary": "Health check"}},
-            "/register": {"post": {"summary": "Register user"}},
-            "/login": {"post": {"summary": "Login user"}},
-            "/deposit": {"post": {"summary": "Deposit money"}},
-            "/withdraw": {"post": {"summary": "Withdraw money"}},
-            "/transfer": {"post": {"summary": "Transfer money"}},
-            "/transactions": {"get": {"summary": "Transaction history"}},
-            "/admin/users": {"get": {"summary": "Admin users"}},
-            "/admin/transactions": {"get": {"summary": "Admin transactions"}}
+            "/": {
+                "get": {
+                    "summary": "Health Check"
+                }
+            },
+            "/register": {
+                "post": {
+                    "summary": "Register User"
+                }
+            },
+            "/login": {
+                "post": {
+                    "summary": "Login User"
+                }
+            },
+            "/deposit": {
+                "post": {
+                    "summary": "Deposit Money",
+                    "security": [{"bearerAuth": []}]
+                }
+            },
+            "/withdraw": {
+                "post": {
+                    "summary": "Withdraw Money",
+                    "security": [{"bearerAuth": []}]
+                }
+            },
+            "/transfer": {
+                "post": {
+                    "summary": "Transfer Money",
+                    "security": [{"bearerAuth": []}]
+                }
+            },
+            "/transactions": {
+                "get": {
+                    "summary": "Transaction History",
+                    "security": [{"bearerAuth": []}]
+                }
+            },
+            "/admin/users": {
+                "get": {
+                    "summary": "Get All Users",
+                    "security": [{"bearerAuth": []}]
+                }
+            },
+            "/admin/transactions": {
+                "get": {
+                    "summary": "Get All Transactions",
+                    "security": [{"bearerAuth": []}]
+                }
+            }
         },
         "components": {
             "securitySchemes": {
@@ -85,9 +134,19 @@ def swagger_json():
         }
     }
 
+
 # =========================
-# Home route
+# Home Route
 # =========================
 @app.route("/")
 def home():
-    return jsonify({"message": "Bank System API is running"})
+    return jsonify({
+        "message": "Bank System API is running"
+    })
+
+
+# =========================
+# Run App
+# =========================
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
