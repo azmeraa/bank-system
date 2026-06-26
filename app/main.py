@@ -71,70 +71,126 @@ def swagger_json():
             "description": "Secure Banking Backend API using Flask + JWT + Admin System"
         },
         "paths": {
-            "/": {
-                "get": {
-                    "summary": "Health Check"
-                }
-            },
             "/register": {
                 "post": {
-                    "summary": "Register User"
+                    "summary": "Register user",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "full_name": {"type": "string"},
+                                        "email": {"type": "string"},
+                                        "password": {"type": "string"}
+                                    },
+                                    "required": ["full_name", "email", "password"]
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": {"description": "User registered"}
+                    }
                 }
             },
+
             "/login": {
                 "post": {
-                    "summary": "Login User"
+                    "summary": "Login user",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "email": {"type": "string"},
+                                        "password": {"type": "string"}
+                                    },
+                                    "required": ["email", "password"]
+                                }
+                            }
+                        }
+                    }
                 }
             },
+
             "/deposit": {
                 "post": {
-                    "summary": "Deposit Money",
-                    "security": [{"bearerAuth": []}]
+                    "summary": "Deposit money",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "amount": {"type": "number"}
+                                    },
+                                    "required": ["amount"]
+                                }
+                            }
+                        }
+                    }
                 }
             },
+
             "/withdraw": {
                 "post": {
-                    "summary": "Withdraw Money",
-                    "security": [{"bearerAuth": []}]
+                    "summary": "Withdraw money",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "amount": {"type": "number"}
+                                    },
+                                    "required": ["amount"]
+                                }
+                            }
+                        }
+                    }
                 }
             },
+
             "/transfer": {
                 "post": {
-                    "summary": "Transfer Money",
-                    "security": [{"bearerAuth": []}]
+                    "summary": "Transfer money",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "receiver_email": {"type": "string"},
+                                        "amount": {"type": "number"}
+                                    },
+                                    "required": ["receiver_email", "amount"]
+                                }
+                            }
+                        }
+                    }
                 }
             },
+
             "/transactions": {
-                "get": {
-                    "summary": "Transaction History",
-                    "security": [{"bearerAuth": []}]
-                }
+                "get": {"summary": "Transaction history"}
             },
+
             "/admin/users": {
-                "get": {
-                    "summary": "Get All Users",
-                    "security": [{"bearerAuth": []}]
-                }
+                "get": {"summary": "Admin users"}
             },
+
             "/admin/transactions": {
-                "get": {
-                    "summary": "Get All Transactions",
-                    "security": [{"bearerAuth": []}]
-                }
-            }
-        },
-        "components": {
-            "securitySchemes": {
-                "bearerAuth": {
-                    "type": "http",
-                    "scheme": "bearer",
-                    "bearerFormat": "JWT"
-                }
+                "get": {"summary": "Admin transactions"}
             }
         }
     }
-
-
 # =========================
 # Home Route
 # =========================
